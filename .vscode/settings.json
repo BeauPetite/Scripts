@@ -1,0 +1,8 @@
+{
+    "workbench.iconTheme": "vs-seti",
+    "terminal.integrated.minimumContrastRatio": 1,
+    "markdown-preview-enhanced.codeBlockTheme": "github-dark.css",
+    "markdown-preview-enhanced.previewTheme": "github-dark.css",
+    "markdown-preview-enhanced.revealjsTheme": "night.css",
+    "editor.defaultFormatter": "GitHub.copilot"
+}
