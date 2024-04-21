@@ -1,0 +1,7 @@
+pre code { /* Targets code blocks */
+    background-color: #282a36; /* Dracula-like background */
+    color: red; /* Dracula-like foreground/text */
+    font-family: "Fira Code", monospace; /* Or a similar font */
+    padding: 10px;            /* Add some padding */
+    border-radius: 5px;       /* Slightly rounded corners */
+ }

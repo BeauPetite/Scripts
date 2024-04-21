@@ -24,7 +24,7 @@ GitHub Wiki repository.
    credentials (to be implemented).
 2. Run the script to generate and upload the PDF.
 
-**Note:** This script is currently under development. 
+**Note:** Make sure the pdf_formatting.css is in the same directory as the script. 
 
 Author: Beau Magnum
 
@@ -67,6 +67,14 @@ def extract_filenames_from_sidebar():
                 
     return file_list # Return the list of filenames
             
+def md_to_pdf_intermediate_patch(file_list):  # This function makes the Markdown file formattable using an html.
+    primary_markdown_file = file_list[0]
+    
+    with open(os.path.join(local_wiki_directory, primary_markdown_file), 'r+') as f:
+        primary_markdown_content = f.read() # Read the content of the primary markdown file
+        f.seek(0,0) # Move the file pointer back to the beginning of the file
+        f.write("---\ntitle: 'Choronos-HoM Wiki'\n---\n" + primary_markdown_file) # Write the title to the beginning of the file
+
 # --- Generate a PDF format using "Pandoc" ---
 def generate_pdf(file_list): # Using padoc to convert the markdown files to a PDF
 
@@ -77,19 +85,18 @@ def generate_pdf(file_list): # Using padoc to convert the markdown files to a PD
 # in the same directory as the wiki files ---
 
         "pandoc",
+        "--to", "html5", # Convert to HTML5 format
         "-o", os.path.join(googleDrive, output_pdf),  # Output file path
         "--toc", 
         "--toc-depth=4",  # Include headings up to level 4 in the ToC
-        "--highlight-style=breezedark" # Use the 'breezedark' syntax highlighting style
-        "--css=pdf_formatting.css" # File must be created seperately. Used for custom CSS styling
     ]
 
     pandoc_command.extend(ordered_markdown_files) # Add the ordered markdown files to the command
     subprocess.run(pandoc_command, cwd=local_wiki_directory)  # Run the pandoc command in the wiki directory
 
-    
 # --- Main Execution ---
 if __name__ == "__main__":
     get_latest_wiki_content()
     file_list = extract_filenames_from_sidebar() # Stores the returned file_list
+    md_to_pdf_intermediate_patch(file_list) # convert the markdown files to a formattable HTML
     generate_pdf(file_list)
