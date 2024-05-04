@@ -91,7 +91,16 @@ def generate_pdf(file_list, local_wiki_directory, output_pdf, googleDrive): # Us
     ]
 
     pandoc_command.extend(ordered_markdown_files) # Add the ordered markdown files to the command
-    subprocess.run(pandoc_command, cwd=local_wiki_directory)  # Run the pandoc command in the wiki directory
+    
+    try:
+        subprocess.run(pandoc_command, cwd=local_wiki_directory)  # Run the pandoc command in the wiki directory
+    except FileNotFoundError as e:
+        missing_file = str(e).split("'")[1]  # Extract the missing file name from the error message
+        print(f"Error: The file '{missing_file}' is missing. Please create the file and try again.")
+        sys.exit(1)  # Terminate the script with a non-zero exit code to indicate an error
+    except subprocess.CalledProcessError as e:
+        print(f"Error running Pandoc: {e}")
+        sys.exit(1)
 
 def main():
     # Get directory structure and file names from 1Password
