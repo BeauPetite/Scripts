@@ -37,23 +37,24 @@ Usage:
 
 import os # Allows python to use os commands, similar to the way commands are executed in the terminal
 import re # Allows python to use regular expressions for pattern matching. In this case, we use it to extract filenames from the '_Sidebar.md' file
+import sys
 import subprocess # Allows python to run other programs within the script, in this case "pandoc", the document conversion software
-
-
-# --- Configuration ---
-local_wiki_directory = "/Users/kennmagnum/Chronos-HoM.wiki/"  # Location of the repo on my harddrive
-output_pdf = "Chronos-HoM-Wiki.pdf"
-googleDrive = "/Users/kennmagnum/Library/CloudStorage/GoogleDrive-kenn.magnum@gmail.com/My Drive/" # "/Users/kennmagnum/Library/CloudStorage/GoogleDrive-kenn.magnum@gmail.com/My Drive"
+from Security.all_access import get_system_username, get_chronos_directory_structure  # Importing the all_access.py file from the Security folder the ".." is used to go up one directory
 
 # --- Git pull for updating wiki on local computer ---
-def get_latest_wiki_content():
+def get_latest_wiki_content(local_wiki_directory):
+    
+    # Determine what computer the user is using by the system username
+    username = get_system_username() # function located inside 'all_access.py' file, needed to access the user's home directory
+
     os.chdir(local_wiki_directory) # Change directory to the wiki location
     try:
         subprocess.run(["git", "pull"], check=True) # Run the git pull command to update the wiki on the local computer
     except subprocess.CalledProcessError as e:
         print(f"Error updating wiki: {e}") # Print an error message if the git pull command fails 
 
-def extract_filenames_from_sidebar():
+
+def extract_filenames_from_sidebar(local_wiki_directory):
     file_list = []
     link_pattern = re.compile(r'\s*\[.*\]\((.*)\)')  # Extracts the filename from a Markdown link, in this case '[Display_Text](filename)'
 
@@ -67,7 +68,7 @@ def extract_filenames_from_sidebar():
                 
     return file_list # Return the list of filenames
             
-def md_to_pdf_intermediate_patch(file_list):  # This function makes the Markdown file formattable using an html.
+def md_to_pdf_intermediate_patch(local_wiki_directory, file_list):  # This function converts the Markdown file into an HTML format, which better converts to PDF than md.
     primary_markdown_file = file_list[0]
     
     with open(os.path.join(local_wiki_directory, primary_markdown_file), 'r+') as f:
@@ -76,17 +77,15 @@ def md_to_pdf_intermediate_patch(file_list):  # This function makes the Markdown
         f.write("---\ntitle: 'Choronos-HoM Wiki'\n---\n" + primary_markdown_file) # Write the title to the beginning of the file
 
 # --- Generate a PDF format using "Pandoc" ---
-def generate_pdf(file_list): # Using padoc to convert the markdown files to a PDF
+def generate_pdf(file_list, local_wiki_directory, output_pdf, googleDrive): # Using padoc to convert the markdown files to a PDF
 
     ordered_markdown_files = file_list # Ensure Correct Ordering of Files Based on '_Sidebar.md'  
 
     pandoc_command = [
-# --- This function expects you to have a CSS file named 'pdf_formatting.css' 
-# in the same directory as the wiki files ---
 
         "pandoc",
         "--to", "html5", # Convert to HTML5 format
-        "-o", os.path.join(googleDrive, output_pdf),  # Output file path
+        "-o", os.path.join(str(googleDrive), str(output_pdf)),  # Output file path
         "--toc", 
         "--toc-depth=4",  # Include headings up to level 4 in the ToC
     ]
@@ -94,9 +93,22 @@ def generate_pdf(file_list): # Using padoc to convert the markdown files to a PD
     pandoc_command.extend(ordered_markdown_files) # Add the ordered markdown files to the command
     subprocess.run(pandoc_command, cwd=local_wiki_directory)  # Run the pandoc command in the wiki directory
 
+def main():
+    # Get directory structure and file names from 1Password
+    directory_structure = get_chronos_directory_structure()
+    
+    # Accessing values
+    local_wiki_directory = directory_structure['local_wiki_directory']
+    output_pdf = directory_structure['output_pdf']
+    google_drive = directory_structure['google_drive']    
+    
+    user_directory = get_system_username() # Get the system username
+    
+    get_latest_wiki_content(local_wiki_directory) # Updates the wiki on the local computer
+    file_list = extract_filenames_from_sidebar(local_wiki_directory) # Stores the returned file_list
+    md_to_pdf_intermediate_patch(local_wiki_directory, file_list) # convert the markdown files to an HTML format
+    generate_pdf(file_list, local_wiki_directory, output_pdf, google_drive) # Generate the PDF file
+    
 # --- Main Execution ---
 if __name__ == "__main__":
-    get_latest_wiki_content()
-    file_list = extract_filenames_from_sidebar() # Stores the returned file_list
-    md_to_pdf_intermediate_patch(file_list) # convert the markdown files to a formattable HTML
-    generate_pdf(file_list)
+    main()
