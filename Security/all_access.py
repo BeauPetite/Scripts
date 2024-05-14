@@ -45,7 +45,7 @@ def get_system_username():
     home_directory = get_user_directory()
     return os.path.basename(home_directory)
 
-def get_chronos_directory_structure():
+def get_chronos_directory_structure(structure_type):
     try:
         # Retrieve the secure note from 1Password
         output = subprocess.check_output(
@@ -57,11 +57,11 @@ def get_chronos_directory_structure():
 
         # Parse the details from the 1Password's secure note. If ADDING ADDITIONAL FIELDS to chronos_script_data, this is the code that needs to be reproduced 
         for field in data.get('fields', []):
-            if field.get('label') == 'directories_and_files': # 'label' is the named used by 1Password Beau set the label to 'directories_and_files'
+            if field.get('label') == structure_type: # 'label' is the named used by 1Password Beau set the label to 'directories_and_files'
                 details = json.loads(field['value'])
                 break
         else:
-            raise ValueError("Directory and file names not found in 1Password's secure note.")
+            raise ValueError("Directory and file names not found for {structure_type} in 1Password's secure note.")
         
         # Replace the placeholder with the actual user's home directory.
         user_home = get_user_directory()
@@ -76,7 +76,3 @@ def get_chronos_directory_structure():
     except ValueError as e:
         print(e)
 
-# Ensure this function is being called properly for testing
-if __name__ == "__main__":
-    directory_structure = get_chronos_directory_structure()
-    print(directory_structure)

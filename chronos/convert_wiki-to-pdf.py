@@ -104,7 +104,7 @@ def generate_pdf(file_list, local_wiki_directory, output_pdf, googleDrive): # Us
 
 def main():
     # Get directory structure and file names from 1Password
-    directory_structure = get_chronos_directory_structure()
+    directory_structure = get_chronos_directory_structure('wiki_directories_and_files')
     
     # Accessing values
     local_wiki_directory = directory_structure['local_wiki_directory']
